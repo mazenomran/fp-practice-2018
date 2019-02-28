@@ -30,7 +30,6 @@ cos x = calculateCos n newX s i where
     n = 1.0 :: Double
     s = 0.0 :: Double
     i = 1 :: Int
-
 calculateCos :: Double -> Double -> Double -> Int -> Double
 calculateCos n x s i = if abs n < eps then s 
     else calculateCos (n * (generalNum x / denomForCos i)) x (s + n) (i + 1) 
