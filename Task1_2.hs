@@ -30,6 +30,7 @@ cos x = calculateCos n newX s i where
     n = 1.0 :: Double
     s = 0.0 :: Double
     i = 1 :: Int
+
 calculateCos :: Double -> Double -> Double -> Int -> Double
 calculateCos n x s i = if abs n < eps then s 
     else calculateCos (n * (generalNum x / denomForCos i)) x (s + n) (i + 1) 
@@ -41,9 +42,9 @@ denomForCos i = ((2 * (fromIntegral i) - 1) * (2 * (fromIntegral i)))
 -- наибольший общий делитель двух чисел
 gcd :: Integer -> Integer -> Integer
 gcd x y 
-    | x == 0    = y
-    | y == 0    = x
-    | otherwise = gcd y (mod x y)
+    |x == 0    = y
+    |y == 0    = x
+    |otherwise = gcd y (mod x y)
 -- существует ли полный целочисленный квадрат в диапазоне [from, to)?
 doesSquareBetweenExist :: Integer -> Integer -> Bool
 doesSquareBetweenExist from to 
@@ -54,17 +55,16 @@ doesSquareBetweenExist from to
 
 -- является ли дата корректной с учётом количества дней в месяце и
 -- вискокосных годов?
-isDateCorrect :: Integer -> Integer -> Integer -> Bool
-isDateCorrect day month year = 
-
+--isDateCorrect :: Integer -> Integer -> Integer -> Bool
+--isDateCorrect day month year = 
 -- возведение числа в степень, duh
 -- готовые функции и плавающую арифметику использовать нельзя
+
 pow :: Integer -> Integer -> Integer
-pow x y 
-    | y == 0 = 1
-    | y == 1 = x
-    | even y = pow (x * x) (y `div` 2)
-    | odd y  = x * pow (x * x) ((y - 1) `div` 2)
+pow x 0 = 1
+pow x 1 = x
+pow x y | even y = pow (x*x) (y `div` 2)
+        | otherwise = x * (pow (x*x) ((y-1) `div` 2))
 
 -- является ли данное число простым?
 isPrime :: Integer -> Bool
