@@ -4,9 +4,10 @@ import Todo(todo)
 
 -- Ассоциативный массив на основе бинарного дерева поиска
 -- Ключи - Integer, значения - произвольного типа
-data TreeMap v =  EmptyTree |
- Node Integer v (TreeMap v) (TreeMap v)
-    deriving (Show, Eq)
+data TreeMap v =    EmptyTree 
+                    | Leaf Integer v
+                    | Node Integer v (TreeMap v) (TreeMap v)
+                    deriving (Show, Eq)
 
 
 -- Пустое дерево
@@ -15,44 +16,48 @@ emptyTree = EmptyTree
 
 -- Содержится ли заданный ключ в дереве?
 contains :: TreeMap v -> Integer -> Bool
-contains Empty _ = False
-contains (Node key _ left right) k
+contains EmptyTree _ = False
+contains (Leaf key v) if k == key then True
+                      else False
+contains (Node key _ l r) k
   | k == key = True
-  | k < key  = contains left k
-  | k > key  = contains right k
+  | k < key  = contains l k
+  | k > key  = contains r k
 
 -- Значение для заданного ключа
 lookup :: Integer -> TreeMap v -> v
-lookup _ Empty = error "No such an element or Tree is Empty"
-lookup k (Node key value left right)
-  | k < key  = lookup k left
-  | k > key  = lookup k right
-  | k == key = value
+lookup _ EmptyTree = error "Not Found"
+lookup (Leaf key v) k = if k == key then v
+                      else error "Not Found"
+lookup k (Node key v l r)
+  | k < key  = lookup k l
+  | k > key  = lookup k r
+  | k == key = v
+  | otherwise = error "Not Found"
 
 -- Вставка пары (ключ, значение) в дерево
 insert :: (Integer, v) -> TreeMap v -> TreeMap v
 insert (k, v) EmptyTree = Node k v EmptyTree EmptyTree
-insert (k, v) (Node key value left right)
-    | k < key   = Node key value (insert (k, v) left) right
-    | k > key   = Node key value left (insert (k, v) right)
-    | otherwise = (Node key value left right)
+insert (k, v) (Leaf key val) = if k == key then Leaf (k v)
+                              else   if k < key then (Node key val (insert (k,v) lt) rt)
+                                       else Node key val lt (insert (k,v) rt)
+                              
+insert (k, v) (Node key value l r)
+    | k < key   = Node key value (insert (k, v) l) r
+    | k > key   = Node key value l (insert (k, v) r)
+    | otherwise = (Node key value l r)
 
 
 -- Удаление элемента по ключу
 remove :: Integer -> TreeMap v -> TreeMap v
-remove _ Empty = Empty
-remove i (Node key value left right)
-  | i < key = Node key value (remove i left) right
-  | i > key = Node key value left (remove i right)
-  | otherwise = case (left, right) of
-    (Empty, Empty) -> Empty
-    (left, Empty)  -> left
-    (Empty, right) -> right
-    (left, right)  -> mergeTrees left right
-    where 
-      mergeTrees l Empty = l
-      mergeTrees l (Node key value Empty right) = Node key value l right
-      mergeTrees l (Node key value left right) = Node key value (mergeTrees l left) right
+remove _ EmptyTree = EmptyTree
+remove i (Leaf key v)  if i == key then EmptyTree
+                        else  Leaf key v           
+                         
+remove i (Node key value l r)
+  | i < key = Node key v (remove i l) r
+  | i > key = Node key v l (remove i r)
+  | otherwise = Node i v EmptyTree EmptyTree
 
 -- Поиск ближайшего снизу ключа относительно заданного
 nearestLE :: Integer -> TreeMap v -> (Integer, v)
