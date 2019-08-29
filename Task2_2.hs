@@ -7,11 +7,11 @@ import Prelude hiding (foldl, foldr, unfoldr, map, concatMap,
 
 foldl :: (b -> a -> b) -> b -> [a] -> b
 foldl f x []     = x
-foldl f x (y:ys) = foldl f (f x y) ys
+foldl f x (h:t) = foldl f (f x h) t
 
 foldr :: (a -> b -> b) -> b -> [a] -> b
 foldr f x []     = x
-foldr f x (y:ys) = f y (foldr f x ys)
+foldr f x (h:t) = f h (foldr f x t)
 
 unfoldr :: (b -> Maybe (a, b)) -> b -> [a]
 unfoldr f = maybe [] (\ (a, b) -> a : unfoldr f b) . f
@@ -34,8 +34,8 @@ product lst = foldl (*) 1 lst
 
 -- Выделение из списка Maybe всех существующих значений
 catMaybes :: [Maybe a] -> [a]
-catMaybes = foldr (\ item lst -> case item of 
-                                      Just item -> item:lst
+catMaybes = foldr (\ i lst -> case i of 
+                                      Just i -> i:lst
                                       Nothing -> lst) []
 
 -- Диагональ матрицы
