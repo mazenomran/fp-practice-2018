@@ -55,3 +55,4 @@ evaluate expression = case expression of
           left  = evaluate lhs
           right = evaluate rhs
   _ -> expression
+
