@@ -4,10 +4,10 @@ module Task3_3 where
 -- Реализуйте классы Monoid и Functor
 -- Объясните в комментариях, почему они реализованы именно так
 
-
+newtype PSet a = PSet{ contains :: (a -> Bool) }
 -- Сложение множеств
 -- Элемент находится в одном из множеств
-newtype PSet a = PSet{ contains :: (a -> Bool) }
+newtype PSetOr a = PSetOr{ containsOr :: (a -> Bool) }
 
 instance Semigroup (PSetOr a) where
     (<>) (PSetOr s1) (PSetOr s2) = PSetOr (\x -> s1 x || s2 x)
@@ -32,7 +32,7 @@ instance Monoid (PSetAnd a) where
 newtype PSetXor a = PSetXor{ containsXor :: (a -> Bool) }
 
 instance Semigroup (PSetXor a) where
-    (<>) (PSetXor s1) (PSetXor s2) = PSetXor (\x -> xor (s1 x) (s2 x))
+    (<>) (PSetXor s1) (PSetXor s2) = PSetXor (\x ->  (s1 x) /= (s2 x))
 
 instance Monoid (PSetXor a) where
     mempty = PSetXor (\x -> False)
