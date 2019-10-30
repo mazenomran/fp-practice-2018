@@ -5,85 +5,81 @@ data WeirdPeanoNumber = Zero | Succ WeirdPeanoNumber | Pred WeirdPeanoNumber
 -- Реализуйте все классы типов, которым должны отвечать целые числа
 instance Show WeirdPeanoNumber where
     show Zero       = "Zero"
-    show (Succ wpn) = "Succ-" ++ show wpn
-    show (Pred wpn) = "Pred-" ++ show wpn
+    show (Succ x) = "Succ-" ++ show x
+    show (Pred x) = "Pred-" ++ show x
 
-myToInteger :: WeirdPeanoNumber -> Integer
-myToInteger Zero       = 0
-myToInteger (Succ wpn) = myToInteger wpn + 1
-myToInteger (Pred wpn) = myToInteger wpn - 1
+toInt :: WeirdPeanoNumber -> Integer
+toInt Zero = 0
+toInt (Succ x) = (toInt x) + 1
+toInt (Pred x) = (toInt x) - 1
 
-myFromInteger :: Integer -> WeirdPeanoNumber
-myFromInteger n 
-    | n == 0 = Zero
-    | n < 0  = Pred (myFromInteger (n + 1))
-    | n > 0  = Succ (myFromInteger (n - 1))
+fromInt :: Integer -> WeirdPeanoNumber
+fromInt x | x > 0 = Succ $ fromInt (x - 1)
+          | x < 0 = Pred $ fromInt (x + 1)
+          | otherwise = Zero
+
+reduce :: WeirdPeanoNumber -> WeirdPeanoNumber
+reduce Zero = Zero
+reduce (Succ (Pred x)) = reduce x
+reduce (Pred (Succ x)) = reduce x
+reduce (Succ a) = case reduce a of (Pred b) -> b
+                                   _ -> Succ $ reduce a
+reduce (Pred a) = case reduce a of (Succ b) -> b
+                                   _ -> Pred $ reduce a
+
 
 instance Eq WeirdPeanoNumber where
-    (==) wpn1 wpn2 = myToInteger wpn1 == myToInteger wpn2
+    (==) a b = reduce a `equal` reduce b where
+      equal Zero Zero = True
+      equal Zero _ = False
+      equal _ Zero = False
+      equal (Succ a) (Succ b) = equal a b
+      equal (Pred a) (Pred b) = equal a b
+      equal _ _ = False
 
 instance Ord WeirdPeanoNumber where
-    (<=) wpn1 wpn2 = (myToInteger wpn1) <= (myToInteger wpn2)
-
-normalize :: WeirdPeanoNumber -> WeirdPeanoNumber
-normalize wpn = myFromInteger (myToInteger wpn)
-
-plus :: WeirdPeanoNumber -> WeirdPeanoNumber -> WeirdPeanoNumber
-plus wpn1 Zero        = wpn1
-plus wpn1 (Succ wpn2) = Succ (wpn1 + wpn2)
-plus wpn1 (Pred wpn2) = Pred (wpn1 + wpn2)
-
-multiply :: WeirdPeanoNumber -> WeirdPeanoNumber -> WeirdPeanoNumber
-multiply Zero _    = Zero
-multiply _ Zero    = Zero
-multiply wpn1 wpn2 = let amount = (myToInteger wpn2) in
-    if amount > 0 then multiplyHelper wpn1 amount else multiplyHelper (negate wpn1) (abs amount)
-
-multiplyHelper :: WeirdPeanoNumber -> Integer -> WeirdPeanoNumber
-multiplyHelper wpn 0 = Zero
-multiplyHelper wpn n = plus wpn (multiplyHelper wpn (n - 1))
-
-negate' :: WeirdPeanoNumber -> WeirdPeanoNumber
-negate' Zero       = Zero
-negate' (Succ wpn) = Pred (negate' wpn)
-negate' (Pred wpn) = Succ (negate' wpn)
-
-signum' :: WeirdPeanoNumber -> WeirdPeanoNumber
-signum' Zero       = Zero
-signum' (Succ wpn) = Succ Zero
-signum' (Pred wpn) = Pred Zero
-
-instance Num WeirdPeanoNumber where
-    (+)         = plus
-    (*)         = multiply
-    abs wpn     = if wpn < Zero then negate wpn else wpn
-    negate wpn  = negate' (normalize wpn)
-    signum wpn  = signum' (normalize wpn)
-    fromInteger = myFromInteger
-
-instance Real WeirdPeanoNumber where
-    toRational wpn = toRational (myToInteger wpn)
+    (<=) a b = reduce a `lessorequal` reduce b where
+      lessorequal (Succ a) (Succ b) = lessorequal a b
+      lessorequal (Pred a) (Pred b) = lessorequal a b
+      lessorequal (Pred _) Zero = True
+      lessorequal Zero (Succ _) = True
+      lessorequal a b = a == b
 
 instance Enum WeirdPeanoNumber where
-    toEnum n     = myFromInteger (fromIntegral n)
-    fromEnum wpn = fromIntegral (myToInteger wpn)
+    toEnum = fromIntegral -- Возьмёт из Num
+    fromEnum = fromInteger.toInt
 
-divide :: WeirdPeanoNumber -> WeirdPeanoNumber -> (WeirdPeanoNumber, WeirdPeanoNumber)
-divide wpn1 wpn2 
-    | wpn1 == Zero               = (Zero, Zero)
-    | wpn2 == Zero               = error "error: divide by zero"
-    | ((wpn1 > 0) && (wpn2 > 0)) = divideHelper wpn1 wpn2 Zero
-    | ((wpn1 > 0) && (wpn2 < 0)) = negateQuot (divideHelper wpn1 (negate wpn2) Zero)
-    | ((wpn1 < 0) && (wpn2 > 0)) = negateQuot (divideHelper (negate wpn1) wpn2 Zero)
-    | ((wpn1 < 0) && (wpn2 < 0)) = divideHelper (negate wpn1) (negate wpn2) Zero
+instance Num WeirdPeanoNumber where
+    Zero + a = a
+    a + Zero = a
+    (Pred a) + b = a + (Pred b)
+    (Succ a) + b = a + (Succ b)
 
-divideHelper :: WeirdPeanoNumber -> WeirdPeanoNumber -> WeirdPeanoNumber -> (WeirdPeanoNumber, WeirdPeanoNumber)
-divideHelper wpn1 wpn2 wpn3 = if wpn1 <= wpn2 then (wpn3 , normalize (wpn2 - (wpn2 - wpn1)))
-                              else divideHelper (wpn1 - wpn2) wpn2 (Succ wpn3)
+    signum a = case reduce a of (Succ _) -> Succ Zero
+                                (Pred _) -> Pred Zero
+                                _        -> Zero
 
-negateQuot :: (WeirdPeanoNumber, WeirdPeanoNumber) -> (WeirdPeanoNumber, WeirdPeanoNumber)
-negateQuot pair = (negate (fst pair), snd pair)
+    negate Zero = Zero
+    negate (Pred a) = Succ $ negate a
+    negate (Succ a) = Pred $ negate a
+
+    abs a = if signum a < Zero then negate a else a
+
+    a * b = case signum b of (Succ Zero) -> a + a * (Pred b)
+                             (Pred Zero) -> negate $ a * (abs b)
+                             (Zero)      -> Zero
+
+    fromInteger = fromInt
+
+instance Real WeirdPeanoNumber where
+    toRational = toRational.toInt
 
 instance Integral WeirdPeanoNumber where
-    quotRem   = divide
-    toInteger = myToInteger
+    toInteger = toInt
+
+
+    quotRem a b | signum a == signum b = result
+                | otherwise = (negate $ fst result, snd result)
+                   where absQuotRem res@(quot, rem) b | rem >= b = absQuotRem (quot + 1, rem - b) b
+                                                      | otherwise = res
+                         result = absQuotRem (Zero, abs a) (abs b)
