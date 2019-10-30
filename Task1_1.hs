@@ -12,47 +12,32 @@ data Term = IntConstant{ intValue :: Int }           -- числовая кон�
 -- Для бинарных операций необходима не только реализация, но и адекватные
 -- ассоциативность и приоритет
 (|+|) :: Term -> Term -> Term
-(|+|) l r = BinaryTerm Plus l r
+(|+|)  l r = l |+| r
 infixl 6 |+|
 
 (|-|) :: Term -> Term -> Term
-(|-|) l r = BinaryTerm Minus l r
+(|-|) l r = l |-| r
 infixl 6 |-|
 
 (|*|) :: Term -> Term -> Term
-(|*|) l r = BinaryTerm Prod l r
+(|*|) l r = l |*| r
 infixl 7 |*|
-
 
 -- Заменить переменную `varName` на `replacement`
 -- во всём выражении `expression`
 replaceVar :: String -> Term -> Term -> Term
-replaceVar varName replacement expression = 
-  let replace hv = replaceVar varName replacement hv in
-      case expression of
-        Variable variable | variable == varName -> replacement
-        BinaryTerm operartion lhv rhv -> BinaryTerm operartion (replace lhv) (replace rhv)
-        _ -> expression 
+replaceVar _ _ (IntConstant intValue) = IntConstant intValue
+replaceVar var term (Variable varName) = if varName == var then term else Variable varName
+replaceVar var term (BinaryTerm operartion lhv rhv) = BinaryTerm operartion (replaceVar var term lhv ) (replaceVar var term rhv )
 
 -- Посчитать значение выражения `Term`
 -- если оно состоит только из констант
 evaluate :: Term -> Term
-evaluate expression = case expression of
-  BinaryTerm operartion lhs rhs ->
-      case (operartion, left, right) of 
-        (Plus, IntConstant left, IntConstant right) -> IntConstant (left + right)
-        (Minus, IntConstant left, IntConstant right) -> IntConstant (left - right)
-        (Prod, IntConstant left, IntConstant right) -> IntConstant (left * right)
-        (Plus, IntConstant 0, right) -> right
-        (Prod, IntConstant 1, right) -> right
-        (Prod, IntConstant 0, right) -> IntConstant 0
-        (Plus, left, IntConstant 0) -> left
-        (Minus, left, IntConstant 0) -> left
-        (Prod, left, IntConstant 0) -> IntConstant 0
-        (Prod, left, IntConstant 1) -> left
-        _ -> BinaryTerm operartion left right 
-        where
-          left  = evaluate lhs
-          right = evaluate rhs
-  _ -> expression
-
+evaluate (BinaryTerm (Plus) (IntConstant 0) (IntConstant r)) = IntConstant (r) 
+evaluate (BinaryTerm (Plus) (IntConstant l) (IntConstant 0)) = IntConstant (l) 
+evaluate (BinaryTerm (Plus) (IntConstant l) (IntConstant r)) = IntConstant (l + r)  
+evaluate (BinaryTerm (Minus) (IntConstant l) (IntConstant 0)) = IntConstant (l) 
+evaluate (BinaryTerm (Minus) (IntConstant l) (IntConstant r)) = IntConstant (l - r)
+evaluate (BinaryTerm (Prod) (IntConstant 0) (IntConstant r)) = IntConstant (0) 
+evaluate (BinaryTerm (Prod) (IntConstant l) (IntConstant 0)) = IntConstant (0) 
+evaluate (BinaryTerm (Prod) (IntConstant l) (IntConstant r)) = IntConstant (l * r)
