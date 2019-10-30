@@ -2,49 +2,23 @@ module Task1_2 where
 
 import Todo(todo)
 import Data.Fixed
-import Prelude hiding (sin, cos, gcd)
 
 -- синус числа (формула Тейлора)
-sin :: Double -> Double
-sin x = calculateSin n newX s i where 
-    newX = mod' x (2 * pi) :: Double
-    n = newX :: Double
-    s = 0.0 :: Double
-    i = 1 :: Int
-
-calculateSin :: Double -> Double -> Double -> Int -> Double
-calculateSin n x s i = if (abs n < eps) then s 
-    else calculateSin (n * (generalNum x / denomForSin i)) x (s + n) (i + 1)
-    where eps = 1e-8 :: Double
-
-generalNum :: Double -> Double
-generalNum x = (-1.0) * x * x
-
-denomForSin :: Int -> Double
-denomForSin i = ((2 * (fromIntegral i)) * (2 * (fromIntegral i) + 1))
+mySin :: Double -> Int -> Double
+mySin x 0 = 1
+mySin x n = mySin x (n-1) + (-1)^n * x^(2*n+1) / (fromIntegral $ product [1..(2*n+1)])
 
 -- косинус числа (формула Тейлора)
-cos :: Double -> Double
-cos x = calculateCos n newX s i where
-    newX = mod' x (2 * pi) :: Double
-    n = 1.0 :: Double
-    s = 0.0 :: Double
-    i = 1 :: Int
-
-calculateCos :: Double -> Double -> Double -> Int -> Double
-calculateCos n x s i = if abs n < eps then s 
-    else calculateCos (n * (generalNum x / denomForCos i)) x (s + n) (i + 1) 
-    where eps = 1e-8 :: Double
-
-denomForCos :: Int -> Double
-denomForCos i = ((2 * (fromIntegral i) - 1) * (2 * (fromIntegral i)))
+myCos :: Double -> Int -> Double
+myCos x 0 = 1
+myCos x n = myCos x (n-1) + (-1)^n * x^(2*n) / (fromIntegral $ product [1..2*n])
 
 -- наибольший общий делитель двух чисел
-gcd :: Integer -> Integer -> Integer
-gcd x y 
-    |x == 0    = y
-    |y == 0    = x
-    |otherwise = gcd y (mod x y)
+myGCD :: Integer -> Integer -> Integer
+myGCD x y = if (x == 0) then y
+          else if (y == 0) then x
+               else myGCD y (mod x y)
+
 -- существует ли полный целочисленный квадрат в диапазоне [from, to)?
 doesSquareBetweenExist :: Integer -> Integer -> Bool
 doesSquareBetweenExist from to 
@@ -55,8 +29,22 @@ doesSquareBetweenExist from to
 
 -- является ли дата корректной с учётом количества дней в месяце и
 -- вискокосных годов?
---isDateCorrect :: Integer -> Integer -> Integer -> Bool
---isDateCorrect day month year = 
+isDateCorrect :: Integer -> Integer -> Integer -> Bool
+isDateCorrect d m y 
+                   |(elem (d [1..30]) && m<13 && elem (m [4,6,3,11]) && y>0) = True
+                   |(m ==2 && elem (d [1..28]) && y>0 && mod y 4 /= 0) = True
+                   |(m ==2 && elem (d [1..29]) && y>0 && mod y 4 == 0) = True
+                   |(elem (d [1..31]) && elem (m [1,3,5,7,8,10,12]) && y>0) = True
+                    otherwise let isDateCorrect d m y = False
+                       
+-- является ли данное число простым?
+
+isPrime :: Integer -> Bool
+isPrime 1 = False
+isPrime 2 = True
+isPrime x | (length [n | n <- [2 .. x-1], mod x n == 0]) > 0 = False
+          | otherwise = True
+
 -- возведение числа в степень, duh
 -- готовые функции и плавающую арифметику использовать нельзя
 
@@ -66,9 +54,9 @@ pow x 1 = x
 pow x y | even y = pow (x*x) (y `div` 2)
         | otherwise = x * (pow (x*x) ((y-1) `div` 2))
 
--- является ли данное число простым?
-isPrime :: Integer -> Bool
-isPrime x = todo
+
+
+
 
 type Point2D = (Double, Double)
 
