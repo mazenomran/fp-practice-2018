@@ -1,42 +1,50 @@
 module Task3_3 where
 
+newtype PSet a = PSet{ contains :: (a -> Bool) }
 
 -- Реализуйте классы Monoid и Functor
 -- Объясните в комментариях, почему они реализованы именно так
 
-newtype PSet a = PSet{ contains :: (a -> Bool) }
--- Сложение множеств
--- Элемент находится в одном из множеств
-newtype PSetOr a = PSetOr{ containsOr :: (a -> Bool) }
+newtype PSet1 a = PSet1{ contains1 :: (a -> Bool) }
+newtype PSet2 a = PSet2{ contains2 :: (a -> Bool) }
+newtype PSet3 a = PSet3{ contains3 :: (a -> Bool) }
 
-instance Semigroup (PSetOr a) where
-    (<>) (PSetOr s1) (PSetOr s2) = PSetOr (\x -> s1 x || s2 x)
+--Monoid
+-- Вариант 1: mappend реализуется как объединение множеств 
 
-instance Monoid (PSetOr a) where
-    mempty = PSetOr (\x -> False)
+ 
 
--- Пересечение множеств
--- Элемент находится в обоих множествах
+instance Semigroup (PSet1 a) where
 
-newtype PSetAnd a = PSetAnd{ containsAnd :: (a -> Bool) }
+   (<>) (PSet1 a) (PSet1 b) = PSet1 (\el -> (a el) || (b el))
 
-instance Semigroup (PSetAnd a) where
-    (<>) (PSetAnd s1) (PSetAnd s2) = PSetAnd (\x -> s1 x && s2 x)
+instance Monoid (PSet1 a) where
 
-instance Monoid (PSetAnd a) where
-    mempty = PSetAnd (\x -> False)
+  mempty = PSet1 (\el -> False)
 
--- Разность множеств
--- Элемент находится в одном множестве, но не находится в другом
+-- Вариант 2: mappend реализуется как пересечение множеств
 
-newtype PSetXor a = PSetXor{ containsXor :: (a -> Bool) }
+instance Semigroup (PSet2 a) where
 
-instance Semigroup (PSetXor a) where
-    (<>) (PSetXor s1) (PSetXor s2) = PSetXor (\x ->  (s1 x) /= (s2 x))
+   (<>) (PSet2 a) (PSet2 b) = PSet2 (\el -> (a el) && (b el))
 
-instance Monoid (PSetXor a) where
-    mempty = PSetXor (\x -> False)
+instance Monoid (PSet2 a) where
 
--- Возможно преобразование A -> B, о В - ничего не знает, поэтому всегда False
-instance Functor PSetXor where
-    fmap _ _ = PSetXor (\x -> False)
+      mempty = PSet2 (\el -> False)
+
+-- Вариант 3: mappend реализуется как разность множеств (A\B)
+
+
+instance Semigroup (PSet3 a) where
+
+ 
+ (<>) (PSet3 a) (PSet3 b) = PSet3 (\el -> (a el) && (not $ b el))
+-- Можно реализовать симметричную разность множеств как (A && not B) || (not A && B)
+
+instance Monoid (PSet3 a) where
+
+           mempty = PSet3 (\a -> False)
+
+-- Functor
+instance Functor PSet where
+  fmap _ (PSet a) = PSet (\b -> False)
