@@ -29,11 +29,32 @@ list2dlist' left (h: t) =
     let rec = DCons left h (list2dlist' rec t)
     in rec
 
-index :: DList a -> Int -> a
-index = todo
+
 
 insertAt :: DList a -> Int -> a -> DList a
-insertAt list index value = todo
+insertAt DNil i item |i < 0 = error "WrongIndex"
+                      | i == 0 = DCons DNil item DNil 
+                      | i > 0  = error "List is too small"
+inserAt (DCons l v r) 0 item = new_node where
+                                         new_node = DCons l item right 
+                                         right = DCons new_node v r 
+inserAt (DCons l v r) item n = DCons l v $ insertAt r item (n-1)
 
-removeAt :: DList a -> Int -> DList a
-removeAt list index = todo
+
+
+
+removeAt :: (Eq a) => DList a -> a -> DList a
+removeAt  DNil _ = DNil 
+removeAt  (DCons l v r@(DCons ll vv rr)) c
+                   | v == c = DCons l vv rr
+                   | otherwise = DCons l v $ removeAt r c
+removeAt  (DCons l v DNil) c = DNil
+
+
+-- ndx :: DList a -> Int -> a
+-- ndx Dlist i |i < 0 = error "WrongIndex"
+--             |Dlist == DNil = error "EmptyList"
+--             |otherwise ndx' Dlist i 
+--       let
+--          ndx' (DCons l v r) i | i== 0 = v
+--                               |ndx' r (i-1)
